@@ -9,13 +9,15 @@ public class Hypothesis {
 	
 	public enum HypothesisType{NBC, DTC}
 	
-	ArrayList<InstanceTriplet> dataset;
-	double weight;
-	double error;
+	private HypothesisType type;
+	private ArrayList<InstanceTriplet> dataset;
+	private double weight;
+	private double error;
 	
 	public Hypothesis(ArrayList<InstanceTriplet> data, HypothesisType type, double trainingRatio, double weight){
 		this.dataset = new ArrayList<InstanceTriplet>();
 		this.dataset.addAll(data);
+		this.type = type;
 		this.weight = weight;
 		this.error = 0.0;
 	}
@@ -68,6 +70,14 @@ public class Hypothesis {
 		for(InstanceTriplet it : this.dataset){
 			it.setWeight((double)1.0/this.dataset.size());
 		}
+	}
+
+	public HypothesisType getType() {
+		return type;
+	}
+
+	public void setType(HypothesisType type) {
+		this.type = type;
 	}
 	
 }
