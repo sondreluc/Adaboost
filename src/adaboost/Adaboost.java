@@ -61,10 +61,10 @@ public class Adaboost {
         	if(!reader.ready()) {
         		break;
         	}
-        	ArrayList<Double> inst = new ArrayList<Double>();
+        	ArrayList<Integer> inst = new ArrayList<Integer>();
         	String[] s = reader.readLine().split(",");
         	for(int i = 0; i < s.length ; i++){
-        		inst.add(Double.parseDouble(s[i]));
+        		inst.add(Integer.parseInt(s[i]));
         	}
         	InstanceTriplet instance = new InstanceTriplet(inst);
         	this.dataset.add(instance);
