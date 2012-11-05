@@ -6,23 +6,50 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import adaboost.Hypothesis.HypothesisType;
+
 public class Adaboost {
 
 	ArrayList<InstanceTriplet> dataset;
+	ArrayList<Hypothesis> hypothesis;
 	
-	public Adaboost(String dataSetFile, int NBCs, int DTCs, int trainingSetSize){
+	public Adaboost(String datasetFile, int NBCs, int DTCs, int trainingSetSize, int DTCMaxDept){
 		this.dataset = new ArrayList<InstanceTriplet>();
+		this.hypothesis = new ArrayList<Hypothesis>();
 		try {
-			this.readFromFile(dataSetFile);
+			this.readFromFile(datasetFile);
 		} catch (IOException e) {
 
 		}
+		
+		
+		for(int i = 0; i < NBCs ; i++){
+			
+			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.NBC, (double)dataset.size()/trainingSetSize, DTCMaxDept);
+			//Do classification here?
+			this.getHypothesis().add(h);
+		}
+		for(int i = 0; i < DTCs; i++){
+			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.DTC, (double)dataset.size()/trainingSetSize, DTCMaxDept);
+			//Do classification here?
+			this.getHypothesis().add(h);
+		}
+		
 	}
 	
-
 	
 
 	
+
+	
+	public ArrayList<Hypothesis> getHypothesis() {
+		return hypothesis;
+	}
+
+	public void setHypothesis(ArrayList<Hypothesis> hypothesis) {
+		this.hypothesis = hypothesis;
+	}
+
 	public void readFromFile(String file) throws IOException{
 		
 		File f = new File(file);
@@ -55,7 +82,7 @@ public class Adaboost {
 		this.dataset = dataset;
 	}
 	public static void main(String[] args) throws IOException{
-		//Adaboost ada = new Adaboost("yeast.txt");
+		//Adaboost ada = new Adaboost("yeast.txt", int NBCs, int DTCs, int trainingSetSize, int DTCMaxDept);
 		
 	}
 	

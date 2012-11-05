@@ -13,13 +13,14 @@ public class Hypothesis {
 	private ArrayList<InstanceTriplet> dataset;
 	private double weight;
 	private double error;
+	private int DTCMaxDepth;
 	
-	public Hypothesis(ArrayList<InstanceTriplet> data, HypothesisType type, double trainingRatio, double weight){
+	public Hypothesis(ArrayList<InstanceTriplet> data, HypothesisType type, double trainingRatio, int DTCMaxDepht){
 		this.dataset = new ArrayList<InstanceTriplet>();
 		this.dataset.addAll(data);
 		this.type = type;
-		this.weight = weight;
 		this.error = 0.0;
+		this.DTCMaxDepth = DTCMaxDepht;
 	}
 	
 	public void updateWeights(){
@@ -78,6 +79,14 @@ public class Hypothesis {
 
 	public void setType(HypothesisType type) {
 		this.type = type;
+	}
+
+	public int getDTCMaxDepth() {
+		return DTCMaxDepth;
+	}
+
+	public void setDTCMaxDepth(int dTCMaxDepth) {
+		DTCMaxDepth = dTCMaxDepth;
 	}
 	
 }
