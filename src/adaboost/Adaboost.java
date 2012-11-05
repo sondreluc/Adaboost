@@ -13,7 +13,7 @@ public class Adaboost {
 	ArrayList<InstanceTriplet> dataset;
 	ArrayList<Hypothesis> hypothesis;
 	
-	public Adaboost(String datasetFile, int NBCs, int DTCs, int trainingSetSize, int DTCMaxDept){
+	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept){
 		this.dataset = new ArrayList<InstanceTriplet>();
 		this.hypothesis = new ArrayList<Hypothesis>();
 		try {
@@ -25,12 +25,12 @@ public class Adaboost {
 		
 		for(int i = 0; i < NBCs ; i++){
 			
-			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.NBC, (double)dataset.size()/trainingSetSize, DTCMaxDept);
+			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.NBC, trainingSetSize, DTCMaxDept);
 			//Do classification here?
 			this.getHypothesis().add(h);
 		}
 		for(int i = 0; i < DTCs; i++){
-			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.DTC, (double)dataset.size()/trainingSetSize, DTCMaxDept);
+			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.DTC, trainingSetSize, DTCMaxDept);
 			//Do classification here?
 			this.getHypothesis().add(h);
 		}
