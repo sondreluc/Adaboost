@@ -12,9 +12,9 @@ public class DTCNode {
 	private boolean isTerminal;
 	private int nodeClass;
 	
-	public DTCNode(DTCNode parent, ArrayList<InstanceTriplet> instances, int attribute) {
+	public DTCNode(DTCNode parent, int attribute) {
 		this.parent = parent;
-		this.instances = instances;
+		this.instances = new ArrayList<InstanceTriplet>();
 		this.attribute = attribute;
 		this.isTerminal = false;
 		this.nodeClass = -1;
@@ -42,6 +42,18 @@ public class DTCNode {
 
 	public void setinstances(ArrayList<InstanceTriplet> instances) {
 		this.instances = instances;
+	}
+	
+	public void addInstance(InstanceTriplet instance) {
+		if(this.instances != null) {
+			this.instances.add(instance);
+		}
+		else {
+			this.instances = new ArrayList<InstanceTriplet>();
+			this.instances.add(instance);
+		}
+			
+		
 	}
 
 	public double getEntropy() {
