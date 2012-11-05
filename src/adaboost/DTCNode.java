@@ -9,15 +9,20 @@ public class DTCNode {
 	private ArrayList<InstanceTriplet> instances;
 	private double entropy;
 	private int attribute;
+	private int attributeValue;
 	private boolean isTerminal;
 	private int nodeClass;
+	private int level; 
 	
-	public DTCNode(DTCNode parent, int attribute) {
+	
+	public DTCNode(DTCNode parent, int attribute, int attributeValue, int level) {
 		this.parent = parent;
 		this.instances = new ArrayList<InstanceTriplet>();
 		this.attribute = attribute;
+		this.attributeValue = attributeValue;
 		this.isTerminal = false;
 		this.nodeClass = -1;
+		this.level = level;
 	}
 
 	public DTCNode getParent() {
@@ -87,6 +92,25 @@ public class DTCNode {
 	public void setNodeClass(int nodeClass) {
 		this.nodeClass = nodeClass;
 	}
+	
+	public int getAttributeValue() {
+		return attributeValue;
+	}
+
+	public void setAttributeValue(int attributeValue) {
+		this.attributeValue = attributeValue;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	
+	
+	
 	
 	
 	
