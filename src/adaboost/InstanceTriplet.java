@@ -5,28 +5,28 @@ import java.util.ArrayList;
 
 public class InstanceTriplet {
 
-	ArrayList<Double> instance;
+	ArrayList<Integer> instance;
 	int classification;
 	double weight;
 	
 	public InstanceTriplet(){
-		this.instance = new ArrayList<Double>();
+		this.instance = new ArrayList<Integer>();
 		classification = 0;
 		weight = 0.0;
 	} 
 	
-	public InstanceTriplet(ArrayList<Double> instance){
-		this.instance = new ArrayList<Double>();
+	public InstanceTriplet(ArrayList<Integer> instance){
+		this.instance = new ArrayList<Integer>();
 		this.instance.addAll(instance);
 		classification = 0; //Integer.parseInt((this.instance.remove(this.instance.size()-1).toString()));
 		weight = 0.0;
 	}
 
-	public ArrayList<Double> getInstance() {
+	public ArrayList<Integer> getInstance() {
 		return instance;
 	}
 
-	public void setInstance(ArrayList<Double> instance) {
+	public void setInstance(ArrayList<Integer> instance) {
 		this.instance = instance;
 	}
 
