@@ -10,36 +10,64 @@ import adaboost.Hypothesis.HypothesisType;
 
 public class Adaboost {
 
-	ArrayList<InstanceTriplet> dataset;
-	ArrayList<Hypothesis> hypothesis;
+	public DataSet dataset;
+	public ArrayList<Hypothesis> hypothesis;
 	
 	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept){
-		this.dataset = new ArrayList<InstanceTriplet>();
 		this.hypothesis = new ArrayList<Hypothesis>();
 		try {
 			this.readFromFile(datasetFile);
 		} catch (IOException e) {
 
 		}
-		
+
 		
 		for(int i = 0; i < NBCs ; i++){
 			
 			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.NBC, trainingSetSize, DTCMaxDept);
-			//Do classification here?
+			h.initilizeWeights();
+			h.doClassification();
+			updateWeights(h);
 			this.getHypothesis().add(h);
 		}
-		for(int i = 0; i < DTCs; i++){
-			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.DTC, trainingSetSize, DTCMaxDept);
-			//Do classification here?
-			this.getHypothesis().add(h);
-		}
+//		for(int i = 0; i < DTCs; i++){
+//			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.DTC, trainingSetSize, DTCMaxDept);
+//			//Do classification here?
+//			this.getHypothesis().add(h);
+//		}
 		
 	}
 	
 	
 
-	
+	public void updateWeights(Hypothesis h){
+		double weightSum = 0.0;
+		int count = 0;
+		int count2 = 0;
+		for(InstanceTriplet it : this.dataset.getInstances()){
+			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
+				h.setError(h.getError()+ it.getWeight());
+				count++;
+				//System.out.println("Error "+this.error);
+			}
+			else{
+				it.setWeight((double)h.getError()/(1.0-h.getError()));
+				count2++;
+			}
+			weightSum += it.getWeight();
+			//System.out.println(weightSum);
+		}
+		double controll = 0;
+		for(InstanceTriplet it : this.dataset.getInstances()){
+			it.setWeight((double)it.getWeight()/weightSum);
+
+			controll = it.getWeight();
+		}
+
+		
+		h.setWeight(Math.log((double)(1-h.getError())/h.getError()));
+		
+	}
 
 	
 	public ArrayList<Hypothesis> getHypothesis() {
@@ -56,33 +84,35 @@ public class Adaboost {
 
         FileReader fReader = new FileReader(f);
         BufferedReader reader = new BufferedReader(fReader);
-        
+        ArrayList<InstanceTriplet> set = new ArrayList<InstanceTriplet>();
         while(true){
         	if(!reader.ready()) {
         		break;
         	}
-        	ArrayList<Integer> inst = new ArrayList<Integer>();
+        	ArrayList<Double> inst = new ArrayList<Double>();
         	String[] s = reader.readLine().split(",");
         	for(int i = 0; i < s.length ; i++){
-        		inst.add(Integer.parseInt(s[i]));
+        		double tall = Double.parseDouble(s[i]);
+        		inst.add(tall);
         	}
         	InstanceTriplet instance = new InstanceTriplet(inst);
-        	this.dataset.add(instance);
+        	set.add(instance);
         }
         
         reader.close();
+        this.dataset = new DataSet(set);
 	}
 	
 
 	
-	public ArrayList<InstanceTriplet> getDataset() {
+	public DataSet getDataset() {
 		return dataset;
 	}
-	public void setDataset(ArrayList<InstanceTriplet> dataset) {
+	public void setDataset(DataSet dataset) {
 		this.dataset = dataset;
 	}
 	public static void main(String[] args) throws IOException{
-		//Adaboost ada = new Adaboost("yeast.txt", int NBCs, int DTCs, int trainingSetSize, int DTCMaxDept);
+		Adaboost ada = new Adaboost("yeast.txt", 5, 0, 0.3, 0);
 		
 	}
 	

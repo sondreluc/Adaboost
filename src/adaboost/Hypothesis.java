@@ -1,7 +1,5 @@
 package adaboost;
 
-import java.util.ArrayList;
-
 
 
 public class Hypothesis {
@@ -10,45 +8,77 @@ public class Hypothesis {
 	public enum HypothesisType{NBC, DTC}
 	
 	private HypothesisType type;
-	private ArrayList<InstanceTriplet> dataset;
+	private DataSet dataSet;
+	private DataSet trainingSet;
+	private DataSet testSet;
 	private double weight;
 	private double error;
 	private int DTCMaxDepth;
+	private double ratio;
 	
-	public Hypothesis(ArrayList<InstanceTriplet> data, HypothesisType type, double trainingRatio, int DTCMaxDepht){
-		this.dataset = new ArrayList<InstanceTriplet>();
-		this.dataset.addAll(data);
+	public Hypothesis(DataSet data, HypothesisType type, double trainingRatio, int DTCMaxDepht){
+		
+		this.dataSet = data;
+		this.testSet = new DataSet();
+		this.trainingSet = new DataSet();
 		this.type = type;
 		this.error = 0.0;
 		this.DTCMaxDepth = DTCMaxDepht;
-	}
-	
-	public void updateWeights(){
-		double weightSum = 0;
-		for(InstanceTriplet it : this.dataset){
-			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
-				this.error += it.getWeight();
-			}
-			else{
-				it.setWeight((double)this.error/(1.0-this.error));
-			}
-			weightSum += it.getWeight();
-		}
-		
-		for(InstanceTriplet it : this.dataset){
-			it.setWeight((double)it.getWeight()/weightSum);
-		}
-		
-		this.weight = Math.log((double)(1-this.error)/this.error);
+		this.ratio = trainingRatio;
 		
 	}
 	
-	public ArrayList<InstanceTriplet> getDataset() {
-		return dataset;
+	public double doClassification(){
+		//double result;
+		this.devideDataset(this.getDataset(), this.ratio);
+		
+		this.testSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
+		this.trainingSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
+		
+		this.testSet.setClasses(this.getDataset().getClasses());
+		this.trainingSet.setClasses(this.getDataset().getClasses());
+		
+		if(this.type == HypothesisType.NBC){
+			NBCBuilder NBC = new NBCBuilder(trainingSet, testSet);
+			NBC.train();
+			System.out.println(NBC.test());
+		}
+		
+		else if(this.type == HypothesisType.DTC){
+			
+		}
+		return 0.0;
+	}
+	
+	
+	
+	public void devideDataset(DataSet data, double ratio){
+		this.getTrainingSet().getInstances().clear();
+		this.getTrainingSet().getInstances().addAll(data.getInstances().subList(0, (int) (data.getInstances().size()*ratio)));
+		
+		this.getTestSet().getInstances().clear();
+		this.getTestSet().getInstances().addAll(data.getInstances().subList((int) (data.getInstances().size()*ratio), data.getInstances().size()));
+	}
+	
+	public DataSet getTrainingSet() {
+		return trainingSet;
+	}
+	public void setTrainingSet(DataSet trainingSet) {
+		this.trainingSet = trainingSet;
+	}
+	public DataSet getTestSet() {
+		return testSet;
+	}
+	public void setTestSet(DataSet testSet) {
+		this.testSet = testSet;
+	}
+	
+	public DataSet getDataset() {
+		return dataSet;
 	}
 
-	public void setDataset(ArrayList<InstanceTriplet> dataset) {
-		this.dataset = dataset;
+	public void setDataset(DataSet dataset) {
+		this.dataSet = dataset;
 	}
 
 	public double getWeight() {
@@ -68,8 +98,8 @@ public class Hypothesis {
 	}
 
 	public void initilizeWeights(){
-		for(InstanceTriplet it : this.dataset){
-			it.setWeight((double)1.0/this.dataset.size());
+		for(InstanceTriplet it : this.dataSet.getInstances()){
+			it.setWeight((double)1.0/this.dataSet.getInstances().size());
 		}
 	}
 

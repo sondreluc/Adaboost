@@ -10,6 +10,11 @@ public class NBCBuilder {
 	private HashMap<Integer, Double> aPrioriClassProb;
 	private HashMap<AttributeValueClassTriplet, Double> conditionalAttrProb;
  	
+	public NBCBuilder(DataSet trainingSet, DataSet testSet){
+		this.trainingSet = trainingSet;
+		this.testSet = testSet;
+		
+	}
 	
 	public void train(){
 		
@@ -22,10 +27,11 @@ public class NBCBuilder {
 			double nevner = 0.0;
 			ArrayList<InstanceTriplet> temp = new ArrayList<InstanceTriplet>();
 			for(InstanceTriplet it : this.trainingSet.getInstances()){
-				if(it.instance.get(it.instance.size()-1) == this.trainingSet.getClasses()[i]){
+				if(it.instance.get(it.instance.size()-1) == classification){
 					counter++;
 					temp.add(it);
 					nevner += 1.0*it.weight;
+					
 				}
 			}
 			this.aPrioriClassProb.put(classification, (double)counter/this.trainingSet.getInstances().size());
@@ -34,14 +40,17 @@ public class NBCBuilder {
 				int attr = j;
 				for(int k = 0; k < this.trainingSet.getAttrNumberOfValues()[attr].length ; k++){
 					int val = this.trainingSet.getAttrNumberOfValues()[attr][k];
-					AttributeValueClassTriplet attrValClass = new AttributeValueClassTriplet(attr, val, classification);
-					double teller = 0;
+					
+					AttributeValueClassTriplet attrValClass = new AttributeValueClassTriplet(attr, (double)val, classification);
+
+					double teller = 0.0;
 					for(InstanceTriplet it : temp){
 						if(it.instance.get(j) == attrValClass.value){
 							teller += 1.0*it.weight;
 						}
 					}
 					this.conditionalAttrProb.put(attrValClass, (double)teller/nevner);
+
 				}
 			}
 		}
@@ -51,22 +60,25 @@ public class NBCBuilder {
 		int correct = 0;
 		for(InstanceTriplet it : this.testSet.getInstances()){
 			double max = 0;
-			for(int i = 0; i < this.testSet.getClasses().length; i++){
-				double hmap = 1;
+			for(int i = 0; i < this.testSet.getClasses().length-1; i++){
+				double hmap = 1.0;
 				for(int attr = 0; attr < this.testSet.getAttrNumberOfValues().length; attr++){
-					hmap = hmap*conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), this.testSet.getClasses()[i]));
+					
+					hmap = hmap*(double)conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), this.testSet.getClasses()[i]));
 				}
-				hmap = hmap*this.aPrioriClassProb.get(i);
+				
+				hmap = hmap*this.aPrioriClassProb.get(this.testSet.getClasses()[i]);
 				if(max < hmap){
-					it.setClassification(i);
+					it.setClassification(this.testSet.getClasses()[i]);
+					max = hmap;
 				}
 			}
-			if(it.getClassification() == it.instance.get(it.instance.size()-1)){
+			if(it.getClassification() == it.instance.get(it.instance.size()-1).intValue()){
 				correct++;
 			}
 		}
 		
-		return (double)correct/this.testSet.getInstances().size();
+		return (double)correct/(double)this.testSet.getInstances().size();
 	}
 	
 	public HashMap<Integer, Double> getaPrioriClassProb() {
@@ -83,14 +95,6 @@ public class NBCBuilder {
 
 	public void setaPrioriAttrProb(HashMap<AttributeValueClassTriplet, Double> aPrioriAttrProb) {
 		this.conditionalAttrProb = aPrioriAttrProb;
-	}
-
-	public void devideDataset(DataSet data, double ratio){
-		this.getTrainingSet().getInstances().clear();
-		this.getTrainingSet().getInstances().addAll(data.getInstances().subList(0, (int) (data.getInstances().size()*ratio)));
-		
-		this.getTestSet().getInstances().clear();
-		this.getTestSet().getInstances().addAll(data.getInstances().subList((int) (data.getInstances().size()*ratio), data.getInstances().size()));
 	}
 	
 	public DataSet getTrainingSet() {
@@ -110,10 +114,10 @@ public class NBCBuilder {
 	public class AttributeValueClassTriplet{
 		
 		public int attribute;
-		public int value;
+		public double value;
 		public int classification;
 		
-		public AttributeValueClassTriplet(int a, int v, int c){
+		public AttributeValueClassTriplet(int a, double v, int c){
 			this.attribute = a;
 			this.value = v;
 			this.classification = c;
@@ -121,7 +125,7 @@ public class NBCBuilder {
 		
 		@Override
 		public int hashCode(){
-			return (this.attribute * value) ^ classification;
+			return (this.attribute * (int)value) ^ classification;
 		}
 		
 		@Override
