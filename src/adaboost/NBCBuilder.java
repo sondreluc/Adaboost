@@ -20,20 +20,22 @@ public class NBCBuilder {
 		
 		this.aPrioriClassProb = new HashMap<Integer, Double>();
 		this.conditionalAttrProb = new HashMap<AttributeValueClassTriplet, Double>();
-		
+
 		for (int i = 0; i < this.trainingSet.getClasses().length; i++){
 			int classification = this.trainingSet.getClasses()[i];
 			int counter = 0;
 			double nevner = 0.0;
 			ArrayList<InstanceTriplet> temp = new ArrayList<InstanceTriplet>();
+			
 			for(InstanceTriplet it : this.trainingSet.getInstances()){
 				if(it.instance.get(it.instance.size()-1) == classification){
 					counter++;
 					temp.add(it);
-					nevner += 1.0*it.weight;
-					
+					nevner += it.weight;
+
 				}
 			}
+			
 			this.aPrioriClassProb.put(classification, (double)counter/this.trainingSet.getInstances().size());
 			
 			for(int j = 0; j < this.trainingSet.getAttrNumberOfValues().length; j++){
@@ -46,7 +48,8 @@ public class NBCBuilder {
 					double teller = 0.0;
 					for(InstanceTriplet it : temp){
 						if(it.instance.get(j) == attrValClass.value){
-							teller += 1.0*it.weight;
+							teller += it.weight;
+							
 						}
 					}
 					this.conditionalAttrProb.put(attrValClass, (double)teller/nevner);
@@ -54,13 +57,14 @@ public class NBCBuilder {
 				}
 			}
 		}
+
 	}
 	
 	public double test(){
 		int correct = 0;
 		for(InstanceTriplet it : this.testSet.getInstances()){
-			double max = 0;
-			for(int i = 0; i < this.testSet.getClasses().length-1; i++){
+			double max = 0.0;
+			for(int i = 0; i < this.testSet.getClasses().length; i++){
 				double hmap = 1.0;
 				for(int attr = 0; attr < this.testSet.getAttrNumberOfValues().length; attr++){
 					

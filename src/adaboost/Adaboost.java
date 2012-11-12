@@ -20,12 +20,11 @@ public class Adaboost {
 		} catch (IOException e) {
 
 		}
-
+		this.initWeights();
 		
 		for(int i = 0; i < NBCs ; i++){
 			
 			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.NBC, trainingSetSize, DTCMaxDept);
-			h.initilizeWeights();
 			h.doClassification();
 			updateWeights(h);
 			this.getHypothesis().add(h);
@@ -38,35 +37,35 @@ public class Adaboost {
 		
 	}
 	
+	public void initWeights(){
+		for(InstanceTriplet it : this.dataset.getInstances()){
+			it.setWeight((double)1.0/this.dataset.getInstances().size());
+		}
+	}
 	
 
 	public void updateWeights(Hypothesis h){
 		double weightSum = 0.0;
-		int count = 0;
-		int count2 = 0;
+
 		for(InstanceTriplet it : this.dataset.getInstances()){
 			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
 				h.setError(h.getError()+ it.getWeight());
-				count++;
-				//System.out.println("Error "+this.error);
+
 			}
 			else{
 				it.setWeight((double)h.getError()/(1.0-h.getError()));
-				count2++;
+
 			}
 			weightSum += it.getWeight();
-			//System.out.println(weightSum);
+
 		}
-		double controll = 0;
+
 		for(InstanceTriplet it : this.dataset.getInstances()){
 			it.setWeight((double)it.getWeight()/weightSum);
-
-			controll = it.getWeight();
 		}
-
 		
 		h.setWeight(Math.log((double)(1-h.getError())/h.getError()));
-		
+
 	}
 
 	
@@ -112,8 +111,9 @@ public class Adaboost {
 		this.dataset = dataset;
 	}
 	public static void main(String[] args) throws IOException{
+
 		Adaboost ada = new Adaboost("yeast.txt", 5, 0, 0.3, 0);
-		
+
 	}
 	
 }

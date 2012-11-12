@@ -97,12 +97,6 @@ public class Hypothesis {
 		this.error = error;
 	}
 
-	public void initilizeWeights(){
-		for(InstanceTriplet it : this.dataSet.getInstances()){
-			it.setWeight((double)1.0/this.dataSet.getInstances().size());
-		}
-	}
-
 	public HypothesisType getType() {
 		return type;
 	}
