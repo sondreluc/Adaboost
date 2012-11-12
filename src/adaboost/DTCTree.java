@@ -10,8 +10,16 @@ public class DTCTree {
 	
 	public DTCTree(DataSet dataSet) {
 		this.dataSet = dataSet;
-		this.rootNode = null;
+		DTCNode root = new DTCNode(null, -1, -1, 0);
 		
+		ArrayList<Integer> initialAttributes = new ArrayList<Integer>();
+		for(int i=0; i<dataSet.getAttrNumberOfValues().length; i++){
+			initialAttributes.add(i);
+		}
+		
+		root.setInstances(dataSet.getInstances());
+		
+		this.rootNode = buildTree(root, initialAttributes, 0);
 	}
 	
 	/*
@@ -112,13 +120,19 @@ public class DTCTree {
 	 */
 	public double calculateGain(DTCNode node, ArrayList<DTCNode> childNodes){
 		double totalEntropy = 0.0;
+		double totalWeight = 0.0;
 		
-		int totalInstances = node.getInstances().size();
+		//int totalInstances = node.getInstances().size();
+		
+		for(DTCNode childNode: childNodes){
+			totalWeight += childNode.getWeight();
+		}
 		
 		for(DTCNode childNode: childNodes){
 			childNode.setEntropy(calculateEntropy(childNode));
-			double childInstances = childNode.getInstances().size();
-			totalEntropy += ((double) childInstances/totalInstances) * childNode.getEntropy(); 
+			//double childInstances = childNode.getInstances().size();
+			
+			totalEntropy += ((double) childNode.getWeight()/totalWeight) * childNode.getEntropy(); 
 		}
 		
 		return node.getEntropy() - totalEntropy;
@@ -144,7 +158,8 @@ public class DTCTree {
 			}
 			
 			DTCNode newNode = new DTCNode(node, attribute, valueSet[i], level);
-			newNode.setinstances(instances);
+			newNode.setInstances(instances);
+			newNode.setWeight(instances);
 			nodes.add(newNode);
 			
 		}
@@ -177,9 +192,16 @@ public class DTCTree {
 	}
 	
 	/*
+	 * 
+	 */
+	public int classify(InstanceTriplet instance){
+		return classifyHelper(instance, this.rootNode);
+	}
+	
+	/*
 	 * Method for classifying an instance with a decision tree
 	 */
-	public int classify(InstanceTriplet instance, DTCNode node) {
+	public int classifyHelper(InstanceTriplet instance, DTCNode node) {
 		
 		if(node.isTerminal()) {
 			return node.getNodeClass();
@@ -187,12 +209,12 @@ public class DTCTree {
 		else {
 			
 			int testAttribute = node.getAttribute();
-			int testResult = instance.getInstance().get(testAttribute);
+			double testResult = instance.getInstance().get(testAttribute);
 			
 			//Go to correct child node, based on the test attribute
 			for(DTCNode child: node.getChildren()){
 				if(child.getAttributeValue() == testResult){
-					return classify(instance, child);
+					return classifyHelper(instance, child);
 				}
 			}
 			
@@ -207,99 +229,93 @@ public class DTCTree {
 	 * Main method for testing
 	 */
 	public static void main(String[] args){
-		DTCNode node = new DTCNode(null, -1, -1, 0);
-		
 		ArrayList<InstanceTriplet> instances = new ArrayList<InstanceTriplet>();
 		
 		DataSet set = new DataSet();
-		
-		DTCTree tree = new DTCTree(set);
-		tree.rootNode = node;
-		
 		
 		//Creating example from the exercise text
 		set.setClasses(new int[]{0,1});
 		set.setAttrNumberOfValues(new int[][]{{0,1,2},{0,1,2},{0,1}});
 		
-		ArrayList<Integer> attributes1 = new ArrayList<Integer>();
-		attributes1.add(0);
-		attributes1.add(0);
-		attributes1.add(0);
+		ArrayList<Double> attributes1 = new ArrayList<Double>();
+		attributes1.add(0.0);
+		attributes1.add(0.0);
+		attributes1.add(0.0);
 		
-		ArrayList<Integer> attributes2 = new ArrayList<Integer>();
-		attributes2.add(0);
-		attributes2.add(0);
-		attributes2.add(0);
+		ArrayList<Double> attributes2 = new ArrayList<Double>();
+		attributes2.add(0.0);
+		attributes2.add(0.0);
+		attributes2.add(0.0);
 		
-		ArrayList<Integer> attributes3 = new ArrayList<Integer>();
-		attributes3.add(0);
-		attributes3.add(1);
-		attributes3.add(0);
+		ArrayList<Double> attributes3 = new ArrayList<Double>();
+		attributes3.add(0.0);
+		attributes3.add(1.0);
+		attributes3.add(0.0);
 		
-		ArrayList<Integer> attributes4 = new ArrayList<Integer>();
-		attributes4.add(0);
-		attributes4.add(0);
-		attributes4.add(1);
+		ArrayList<Double> attributes4 = new ArrayList<Double>();
+		attributes4.add(0.0);
+		attributes4.add(0.0);
+		attributes4.add(1.0);
 		
-		ArrayList<Integer> attributes5 = new ArrayList<Integer>();
-		attributes5.add(0);
-		attributes5.add(2);
-		attributes5.add(1);
+		ArrayList<Double> attributes5 = new ArrayList<Double>();
+		attributes5.add(0.0);
+		attributes5.add(2.0);
+		attributes5.add(1.0);
 		
-		ArrayList<Integer> attributes6 = new ArrayList<Integer>();
-		attributes6.add(1);
-		attributes6.add(2);
-		attributes6.add(0);
+		ArrayList<Double> attributes6 = new ArrayList<Double>();
+		attributes6.add(1.0);
+		attributes6.add(2.0);
+		attributes6.add(0.0);
 		
-		ArrayList<Integer> attributes7 = new ArrayList<Integer>();
-		attributes7.add(1);
-		attributes7.add(2);
-		attributes7.add(0);
+		ArrayList<Double> attributes7 = new ArrayList<Double>();
+		attributes7.add(1.0);
+		attributes7.add(2.0);
+		attributes7.add(0.0);
 		
-		ArrayList<Integer> attributes8 = new ArrayList<Integer>();
-		attributes8.add(1);
-		attributes8.add(1);
-		attributes8.add(0);
+		ArrayList<Double> attributes8 = new ArrayList<Double>();
+		attributes8.add(1.0);
+		attributes8.add(1.0);
+		attributes8.add(0.0);
 		
-		ArrayList<Integer> attributes9 = new ArrayList<Integer>();
-		attributes9.add(1);
-		attributes9.add(0);
-		attributes9.add(0);
+		ArrayList<Double> attributes9 = new ArrayList<Double>();
+		attributes9.add(1.0);
+		attributes9.add(0.0);
+		attributes9.add(0.0);
 		
-		ArrayList<Integer> attributes10 = new ArrayList<Integer>();
-		attributes10.add(1);
-		attributes10.add(2);
-		attributes10.add(1);
+		ArrayList<Double> attributes10 = new ArrayList<Double>();
+		attributes10.add(1.0);
+		attributes10.add(2.0);
+		attributes10.add(1.0);
 		
-		ArrayList<Integer> attributes11 = new ArrayList<Integer>();
-		attributes11.add(1);
-		attributes11.add(1);
-		attributes11.add(1);
+		ArrayList<Double> attributes11 = new ArrayList<Double>();
+		attributes11.add(1.0);
+		attributes11.add(1.0);
+		attributes11.add(1.0);
 		
-		ArrayList<Integer> attributes12 = new ArrayList<Integer>();
-		attributes12.add(2);
-		attributes12.add(0);
-		attributes12.add(0);
+		ArrayList<Double> attributes12 = new ArrayList<Double>();
+		attributes12.add(2.0);
+		attributes12.add(0.0);
+		attributes12.add(0.0);
 		
-		ArrayList<Integer> attributes13 = new ArrayList<Integer>();
-		attributes13.add(2);
-		attributes13.add(1);
-		attributes13.add(0);
+		ArrayList<Double> attributes13 = new ArrayList<Double>();
+		attributes13.add(2.0);
+		attributes13.add(1.0);
+		attributes13.add(0.0);
 		
-		ArrayList<Integer> attributes14 = new ArrayList<Integer>();
-		attributes14.add(2);
-		attributes14.add(0);
-		attributes14.add(0);
+		ArrayList<Double> attributes14 = new ArrayList<Double>();
+		attributes14.add(2.0);
+		attributes14.add(0.0);
+		attributes14.add(0.0);
 		
-		ArrayList<Integer> attributes15 = new ArrayList<Integer>();
-		attributes15.add(2);
-		attributes15.add(1);
-		attributes15.add(1);
+		ArrayList<Double> attributes15 = new ArrayList<Double>();
+		attributes15.add(2.0);
+		attributes15.add(1.0);
+		attributes15.add(1.0);
 		
-		ArrayList<Integer> attributes16 = new ArrayList<Integer>();
-		attributes16.add(2);
-		attributes16.add(2);
-		attributes16.add(1);
+		ArrayList<Double> attributes16 = new ArrayList<Double>();
+		attributes16.add(2.0);
+		attributes16.add(2.0);
+		attributes16.add(1.0);
 		
 		InstanceTriplet instance1 = new InstanceTriplet(attributes1);
 		InstanceTriplet instance2 = new InstanceTriplet(attributes2);
@@ -335,6 +351,23 @@ public class DTCTree {
 		instance15.setClassification(0);
 		instance16.setClassification(1);
 		
+		instance1.setWeight(1.0/16.0);
+		instance2.setWeight(1.0/16.0);
+		instance3.setWeight(1.0/16.0);
+		instance4.setWeight(1.0/16.0);
+		instance5.setWeight(1.0/16.0);
+		instance6.setWeight(1.0/16.0);
+		instance7.setWeight(1.0/16.0);
+		instance8.setWeight(1.0/16.0);
+		instance9.setWeight(1.0/16.0);
+		instance10.setWeight(1.0/16.0);
+		instance11.setWeight(1.0/16.0);
+		instance12.setWeight(1.0/16.0);
+		instance13.setWeight(1.0/16.0);
+		instance14.setWeight(1.0/16.0);
+		instance15.setWeight(1.0/16.0);
+		instance16.setWeight(1.0/16.0);
+		
 		instances.add(instance1);
 		instances.add(instance2);
 		instances.add(instance3);
@@ -354,27 +387,14 @@ public class DTCTree {
 
 		set.setInstances(instances);
 		
-		node.setinstances(instances);
-		
+		DTCTree tree = new DTCTree(set);
+				
 		ArrayList<Integer> remaining = new ArrayList<Integer>();
 		remaining.add(0);
 		remaining.add(1);
 		remaining.add(2);
-		
-		
-		tree.buildTree(node, remaining, 0);
 				
-		System.out.println("Instance is of class: " + tree.classify(instance8, node));
-		
-		
-		/*
-		node.setEntropy(tree.calculateEntropy(node));
-		
-		double gain = tree.calculateGain(node, tree.splitNode(node, 0));
-		
-		System.out.println(gain);
-		*/
-		
+		System.out.println("Instance is of class: " + tree.classify(instance8));
 		
 	}
 

@@ -13,6 +13,7 @@ public class DTCNode {
 	private boolean isTerminal;
 	private int nodeClass;
 	private int level; 
+	private double weight;
 	
 	
 	public DTCNode(DTCNode parent, int attribute, int attributeValue, int level) {
@@ -45,7 +46,7 @@ public class DTCNode {
 		return instances;
 	}
 
-	public void setinstances(ArrayList<InstanceTriplet> instances) {
+	public void setInstances(ArrayList<InstanceTriplet> instances) {
 		this.instances = instances;
 	}
 	
@@ -108,6 +109,22 @@ public class DTCNode {
 	public void setLevel(int level) {
 		this.level = level;
 	}
+
+	public double getWeight() {
+		return weight;
+	}
+
+	public void setWeight(ArrayList<InstanceTriplet> instances) {
+		double weight = 0.0;
+		
+		for(InstanceTriplet instance: instances){
+			weight += instance.getWeight();
+		}
+		
+		this.weight = weight;
+	}
+	
+	
 	
 	
 	
