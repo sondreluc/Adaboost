@@ -29,7 +29,7 @@ public class Hypothesis {
 		//double result;
 		
 		if(this.type == HypothesisType.NBC){
-			NBCBuilder NBC = new NBCBuilder(trainingSet, testSet);
+			NBCBuilder NBC = new NBCBuilder(this.trainingSet);
 			NBC.train();
 			System.out.println(NBC.test());
 		}

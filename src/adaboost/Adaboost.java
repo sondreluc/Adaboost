@@ -17,6 +17,8 @@ public class Adaboost {
 	
 	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept){
 		this.hypothesis = new ArrayList<Hypothesis>();
+		this.testSet = new DataSet();
+		this.trainingSet = new DataSet();
 		try {
 			this.readFromFile(datasetFile);
 		} catch (IOException e) {
@@ -78,6 +80,9 @@ public class Adaboost {
 		}
 		
 		h.setWeight(Math.log((double)(1-h.getError())/h.getError()));
+		
+//		System.out.println("hyp error: " + h.getError());
+//		System.out.println("hyp vekt sum: " +weightSum);
 
 	}
 
@@ -110,9 +115,17 @@ public class Adaboost {
         	InstanceTriplet instance = new InstanceTriplet(inst);
         	set.add(instance);
         }
-        
+        int counter = set.size();
+
+        ArrayList<InstanceTriplet> random = new ArrayList<InstanceTriplet>();
+        while(counter > 0){
+        	random.add(set.remove(((int)(Math.random()*counter))));
+        	
+        	counter = set.size();
+        }
+
         reader.close();
-        this.dataset = new DataSet(set);
+        this.dataset = new DataSet(random);
 	}
 	
 	public void devideDataset(DataSet data, double ratio){
@@ -122,10 +135,6 @@ public class Adaboost {
 		this.getTrainingSet().getInstances().clear();
 		this.getTrainingSet().getInstances().addAll(data.getInstances().subList((int) (data.getInstances().size()*ratio), data.getInstances().size()));
 	}
-	
-	
-	
-
 	
 	public DataSet getTestSet() {
 		return testSet;
@@ -151,7 +160,7 @@ public class Adaboost {
 	}
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("yeast.txt", 0, 5, 0.3, 5);
+		Adaboost ada = new Adaboost("yeast.txt", 5, 0, 0.3, 0);
 
 	}
 	
