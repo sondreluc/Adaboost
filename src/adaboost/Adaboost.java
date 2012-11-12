@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import adaboost.Hypothesis.HypothesisType;
 
@@ -40,15 +41,43 @@ public class Adaboost {
 		for(int i = 0; i < NBCs ; i++){
 			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.testSet, this.trainingSet);
 			h.doClassification();
-			updateWeights(h);
+			h.setGood(updateWeights(h));
 			this.getHypothesis().add(h);
 		}
 		for(int i = 0; i < DTCs; i++){
 			Hypothesis h = new Hypothesis(HypothesisType.DTC, DTCMaxDept,this.testSet, this.trainingSet);
 			h.doClassification();
-			updateWeights(h);
+			h.setGood(updateWeights(h));
+			
 			this.getHypothesis().add(h);
 		}
+		
+		for(int i =0; i< this.getTestSet().getInstances().size(); i++){
+			HashMap<Integer, Double> votes = new HashMap<Integer, Double>();
+			for(Hypothesis h : this.getHypothesis()){
+				if(h.isGood()){
+					if(!votes.containsKey(h.getTestSet().getInstances().get(i).getClassification())){
+						votes.put(h.getTestSet().getInstances().get(i).getClassification(), h.getWeight());
+					}
+					else{
+						double vote = votes.get(h.getTestSet().getInstances().get(i).getClassification());
+						vote += h.getWeight();
+						votes.put(h.getTestSet().getInstances().get(i).getClassification(), vote);
+					}
+				}
+			}
+			int classification = 0;
+			double highestVote = 0.0;
+			for(Integer classInteger: votes.keySet()){
+				if(votes.get(classInteger)> highestVote){
+					classification = classInteger;
+					highestVote = votes.get(classInteger);
+				}
+			}
+			this.getTestSet().getInstances().get(i).setClassification(classification);
+		}
+	
+		
 		
 	}
 	
@@ -59,17 +88,20 @@ public class Adaboost {
 	}
 	
 
-	public void updateWeights(Hypothesis h){
+	public boolean updateWeights(Hypothesis h){
 		double weightSum = 0.0;
 
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
 				h.setError(h.getError()+ it.getWeight());
-
 			}
-			else{
-				it.setWeight((double)h.getError()/(1.0-h.getError()));
-
+		}
+		if(h.getError()>(double)(this.dataset.getClasses().length-1)/(this.dataset.getClasses().length)){
+			return false;
+		}
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
+				it.setWeight(it.getWeight()*(1-(double)h.getError()/h.getError())*(this.getDataset().getClasses().length-1));
 			}
 			weightSum += it.getWeight();
 
@@ -80,10 +112,7 @@ public class Adaboost {
 		}
 		
 		h.setWeight(Math.log((double)(1-h.getError())/h.getError()));
-		
-//		System.out.println("hyp error: " + h.getError());
-//		System.out.println("hyp vekt sum: " +weightSum);
-
+		return true;
 	}
 
 	
@@ -160,8 +189,14 @@ public class Adaboost {
 	}
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("yeast.txt", 5, 0, 0.3, 0);
-
+		Adaboost ada = new Adaboost("page-blocks.txt", 5, 0, 0.3, 0);
+		int correct = 0;
+		for (InstanceTriplet it: ada.getTestSet().getInstances()){
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == it.getClassification()){
+				correct++;
+			}
+		}
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());
 	}
 	
 }

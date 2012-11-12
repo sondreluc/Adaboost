@@ -13,7 +13,7 @@ public class Hypothesis {
 	private double weight;
 	private double error;
 	private int DTCMaxDepth;
-	private double ratio;
+	private boolean good;
 	
 	public Hypothesis(HypothesisType type, int DTCMaxDepht, DataSet testSet, DataSet trainingSet){
 		
@@ -22,7 +22,7 @@ public class Hypothesis {
 		this.type = type;
 		this.error = 0.0;
 		this.DTCMaxDepth = DTCMaxDepht;
-		
+		this.good = true;
 	}
 	
 	public double doClassification(){
@@ -31,7 +31,8 @@ public class Hypothesis {
 		if(this.type == HypothesisType.NBC){
 			NBCBuilder NBC = new NBCBuilder(this.trainingSet);
 			NBC.train();
-			System.out.println(NBC.test());
+			NBC.testSet(NBC.getTrainingSet());
+			NBC.testSet(this.testSet);
 		}
 		
 		else if(this.type == HypothesisType.DTC){
@@ -84,6 +85,14 @@ public class Hypothesis {
 
 	public void setDTCMaxDepth(int dTCMaxDepth) {
 		DTCMaxDepth = dTCMaxDepth;
+	}
+
+	public boolean isGood() {
+		return good;
+	}
+
+	public void setGood(boolean good) {
+		this.good = good;
 	}
 	
 }

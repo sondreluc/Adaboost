@@ -5,14 +5,12 @@ import java.util.HashMap;
 
 public class NBCBuilder {
 
-	private DataSet dataSet;
+	private DataSet trainingSet;
 	private HashMap<Integer, Double> aPrioriClassProb;
 	private HashMap<AttributeValueClassTriplet, Double> conditionalAttrProb;
  	
 	public NBCBuilder(DataSet data){
-		this.dataSet = data;
-
-		
+		this.trainingSet = data;
 	}
 	
 	public void train(){
@@ -20,13 +18,13 @@ public class NBCBuilder {
 		this.aPrioriClassProb = new HashMap<Integer, Double>();
 		this.conditionalAttrProb = new HashMap<AttributeValueClassTriplet, Double>();
 
-		for (int i = 0; i < this.dataSet.getClasses().length; i++){
-			int classification = this.dataSet.getClasses()[i];
+		for (int i = 0; i < this.trainingSet.getClasses().length; i++){
+			int classification = this.trainingSet.getClasses()[i];
 			int counter = 0;
 			double nevner = 0.0;
 			ArrayList<InstanceTriplet> temp = new ArrayList<InstanceTriplet>();
 			
-			for(InstanceTriplet it : this.dataSet.getInstances()){
+			for(InstanceTriplet it : this.trainingSet.getInstances()){
 				if(it.instance.get(it.instance.size()-1) == classification){
 					counter++;
 					temp.add(it);
@@ -35,12 +33,12 @@ public class NBCBuilder {
 				}
 			}
 			
-			this.aPrioriClassProb.put(classification, (double)counter/this.dataSet.getInstances().size());
+			this.aPrioriClassProb.put(classification, (double)counter/this.trainingSet.getInstances().size());
 			
-			for(int j = 0; j < this.dataSet.getAttrNumberOfValues().length; j++){
+			for(int j = 0; j < this.trainingSet.getAttrNumberOfValues().length; j++){
 				int attr = j;
-				for(int k = 0; k < this.dataSet.getAttrNumberOfValues()[attr].length ; k++){
-					int val = this.dataSet.getAttrNumberOfValues()[attr][k];
+				for(int k = 0; k < this.trainingSet.getAttrNumberOfValues()[attr].length ; k++){
+					int val = this.trainingSet.getAttrNumberOfValues()[attr][k];
 					
 					AttributeValueClassTriplet attrValClass = new AttributeValueClassTriplet(attr, (double)val, classification);
 
@@ -52,27 +50,25 @@ public class NBCBuilder {
 						}
 					}
 					this.conditionalAttrProb.put(attrValClass, (double)teller/nevner);
-
 				}
 			}
 		}
-
 	}
 	
-	public double test(){
+	public double testSet(DataSet set){
 		int correct = 0;
-		for(InstanceTriplet it : this.dataSet.getInstances()){
+		for(InstanceTriplet it : set.getInstances()){
 			double max = 0.0;
-			for(int i = 0; i < this.dataSet.getClasses().length; i++){
+			for(int i = 0; i < set.getClasses().length; i++){
 				double hmap = 1.0;
-				for(int attr = 0; attr < this.dataSet.getAttrNumberOfValues().length; attr++){
+				for(int attr = 0; attr < set.getAttrNumberOfValues().length; attr++){
 					
-					hmap = hmap*(double)conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), this.dataSet.getClasses()[i]));
+					hmap = hmap*(double)conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), set.getClasses()[i]));
 				}
 				
-				hmap = hmap*this.aPrioriClassProb.get(this.dataSet.getClasses()[i]);
+				hmap = hmap*this.aPrioriClassProb.get(set.getClasses()[i]);
 				if(max < hmap){
-					it.setClassification(this.dataSet.getClasses()[i]);
+					it.setClassification(set.getClasses()[i]);
 					max = hmap;
 				}
 			}
@@ -81,7 +77,7 @@ public class NBCBuilder {
 			}
 		}
 		
-		return (double)correct/(double)this.dataSet.getInstances().size();
+		return (double)correct/(double)set.getInstances().size();
 	}
 	
 	public HashMap<Integer, Double> getaPrioriClassProb() {
@@ -100,11 +96,11 @@ public class NBCBuilder {
 		this.conditionalAttrProb = aPrioriAttrProb;
 	}
 	
-	public DataSet getdataSet() {
-		return dataSet;
+	public DataSet getTrainingSet() {
+		return trainingSet;
 	}
-	public void setdataSet(DataSet dataSet) {
-		this.dataSet = dataSet;
+	public void setTrainingSet(DataSet dataSet) {
+		this.trainingSet = dataSet;
 	}
 
 	
