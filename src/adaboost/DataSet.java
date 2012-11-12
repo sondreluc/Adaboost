@@ -59,7 +59,7 @@ public class DataSet {
 			}
 
 			double dif = heigh-low;
-			double onePart = dif/5;
+			double onePart = dif/10;
 			ArrayList<Double> attributeList = new ArrayList<Double>();
 			for(InstanceTriplet it : this.instances){
 				if(low <= it.getInstance().get(i) && it.getInstance().get(i)< low+onePart){
@@ -86,10 +86,40 @@ public class DataSet {
 						attributeList.add(3.0);
 					}
 				}
-				else{
-					it.getInstance().set(i, (double)4);	
+				else if(low+onePart*4 <= it.getInstance().get(i) && it.getInstance().get(i) < low+onePart*5){
+					it.getInstance().set(i, 4.0);
 					if(!attributeList.contains(4.0)){
 						attributeList.add(4.0);
+					}
+				}
+				else if(low+onePart*5 <= it.getInstance().get(i) && it.getInstance().get(i) < low+onePart*6){
+					it.getInstance().set(i, (double)5);
+					if(!attributeList.contains(5.0)){
+						attributeList.add(5.0);
+					}
+				}
+				else if(low+onePart*6 <= it.getInstance().get(i) && it.getInstance().get(i) < low+onePart*7){
+					it.getInstance().set(i, (double)6);
+					if(!attributeList.contains(6.0)){
+						attributeList.add(6.0);
+					}
+				}
+				else if(low+onePart*7 <= it.getInstance().get(i) && it.getInstance().get(i) < low+onePart*8){
+					it.getInstance().set(i, (double)7);
+					if(!attributeList.contains(7.0)){
+						attributeList.add(7.0);
+					}
+				}
+				else if(low+onePart*8 <= it.getInstance().get(i) && it.getInstance().get(i) < low+onePart*9){
+					it.getInstance().set(i, (double)8);
+					if(!attributeList.contains(8.0)){
+						attributeList.add(8.0);
+					}
+				}
+				else{
+					it.getInstance().set(i, (double)9);	
+					if(!attributeList.contains(9.0)){
+						attributeList.add(9.0);
 					}
 				}
 			}
@@ -101,22 +131,18 @@ public class DataSet {
 		}
 		
 		ArrayList<Integer> classesArray = new ArrayList<>();
-		this.classes = new int[classesArray.size()];
 		for(InstanceTriplet it : this.instances){
-			boolean contains = false;
-			for(int i = 0; i<this.classes.length; i++){
-				if((it.instance.get(it.instance.size()-1)).intValue() == this.classes[i]){
-					contains = true;
-				}
-			}
-			if(!contains){
+
+			if(!classesArray.contains(it.getInstance().get(it.getInstance().size()-1).intValue())){
 				classesArray.add(it.instance.get(it.instance.size()-1).intValue());
 			}
 		}
+		
 		this.classes = new int[classesArray.size()];
 		for(int i = 0; i<classesArray.size(); i++){
 			this.classes[i] = classesArray.get(i);
 		}
+		
 	}
 
 }

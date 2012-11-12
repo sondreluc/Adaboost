@@ -5,14 +5,13 @@ import java.util.HashMap;
 
 public class NBCBuilder {
 
-	private DataSet trainingSet;
-	private DataSet testSet;
+	private DataSet dataSet;
 	private HashMap<Integer, Double> aPrioriClassProb;
 	private HashMap<AttributeValueClassTriplet, Double> conditionalAttrProb;
  	
-	public NBCBuilder(DataSet trainingSet, DataSet testSet){
-		this.trainingSet = trainingSet;
-		this.testSet = testSet;
+	public NBCBuilder(DataSet data){
+		this.dataSet = data;
+
 		
 	}
 	
@@ -21,13 +20,13 @@ public class NBCBuilder {
 		this.aPrioriClassProb = new HashMap<Integer, Double>();
 		this.conditionalAttrProb = new HashMap<AttributeValueClassTriplet, Double>();
 
-		for (int i = 0; i < this.trainingSet.getClasses().length; i++){
-			int classification = this.trainingSet.getClasses()[i];
+		for (int i = 0; i < this.dataSet.getClasses().length; i++){
+			int classification = this.dataSet.getClasses()[i];
 			int counter = 0;
 			double nevner = 0.0;
 			ArrayList<InstanceTriplet> temp = new ArrayList<InstanceTriplet>();
 			
-			for(InstanceTriplet it : this.trainingSet.getInstances()){
+			for(InstanceTriplet it : this.dataSet.getInstances()){
 				if(it.instance.get(it.instance.size()-1) == classification){
 					counter++;
 					temp.add(it);
@@ -36,12 +35,12 @@ public class NBCBuilder {
 				}
 			}
 			
-			this.aPrioriClassProb.put(classification, (double)counter/this.trainingSet.getInstances().size());
+			this.aPrioriClassProb.put(classification, (double)counter/this.dataSet.getInstances().size());
 			
-			for(int j = 0; j < this.trainingSet.getAttrNumberOfValues().length; j++){
+			for(int j = 0; j < this.dataSet.getAttrNumberOfValues().length; j++){
 				int attr = j;
-				for(int k = 0; k < this.trainingSet.getAttrNumberOfValues()[attr].length ; k++){
-					int val = this.trainingSet.getAttrNumberOfValues()[attr][k];
+				for(int k = 0; k < this.dataSet.getAttrNumberOfValues()[attr].length ; k++){
+					int val = this.dataSet.getAttrNumberOfValues()[attr][k];
 					
 					AttributeValueClassTriplet attrValClass = new AttributeValueClassTriplet(attr, (double)val, classification);
 
@@ -62,18 +61,18 @@ public class NBCBuilder {
 	
 	public double test(){
 		int correct = 0;
-		for(InstanceTriplet it : this.testSet.getInstances()){
+		for(InstanceTriplet it : this.dataSet.getInstances()){
 			double max = 0.0;
-			for(int i = 0; i < this.testSet.getClasses().length; i++){
+			for(int i = 0; i < this.dataSet.getClasses().length; i++){
 				double hmap = 1.0;
-				for(int attr = 0; attr < this.testSet.getAttrNumberOfValues().length; attr++){
+				for(int attr = 0; attr < this.dataSet.getAttrNumberOfValues().length; attr++){
 					
-					hmap = hmap*(double)conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), this.testSet.getClasses()[i]));
+					hmap = hmap*(double)conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), this.dataSet.getClasses()[i]));
 				}
 				
-				hmap = hmap*this.aPrioriClassProb.get(this.testSet.getClasses()[i]);
+				hmap = hmap*this.aPrioriClassProb.get(this.dataSet.getClasses()[i]);
 				if(max < hmap){
-					it.setClassification(this.testSet.getClasses()[i]);
+					it.setClassification(this.dataSet.getClasses()[i]);
 					max = hmap;
 				}
 			}
@@ -82,7 +81,7 @@ public class NBCBuilder {
 			}
 		}
 		
-		return (double)correct/(double)this.testSet.getInstances().size();
+		return (double)correct/(double)this.dataSet.getInstances().size();
 	}
 	
 	public HashMap<Integer, Double> getaPrioriClassProb() {
@@ -101,18 +100,13 @@ public class NBCBuilder {
 		this.conditionalAttrProb = aPrioriAttrProb;
 	}
 	
-	public DataSet getTrainingSet() {
-		return trainingSet;
+	public DataSet getdataSet() {
+		return dataSet;
 	}
-	public void setTrainingSet(DataSet trainingSet) {
-		this.trainingSet = trainingSet;
+	public void setdataSet(DataSet dataSet) {
+		this.dataSet = dataSet;
 	}
-	public DataSet getTestSet() {
-		return testSet;
-	}
-	public void setTestSet(DataSet testSet) {
-		this.testSet = testSet;
-	}
+
 	
 	
 	public class AttributeValueClassTriplet{
