@@ -11,6 +11,8 @@ import adaboost.Hypothesis.HypothesisType;
 public class Adaboost {
 
 	public DataSet dataset;
+	public DataSet testSet;
+	public DataSet trainingSet;
 	public ArrayList<Hypothesis> hypothesis;
 	
 	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept){
@@ -20,20 +22,28 @@ public class Adaboost {
 		} catch (IOException e) {
 
 		}
+		this.devideDataset(this.dataset, trainingSetSize);
+		this.testSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
+		this.trainingSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
+		
+		this.testSet.setClasses(this.getDataset().getClasses());
+		this.trainingSet.setClasses(this.getDataset().getClasses());
+		
 		this.initWeights();
 		
 		for(int i = 0; i < NBCs ; i++){
 			
-			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.NBC, trainingSetSize, DTCMaxDept);
+			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.getTestSet(), this.getTrainingSet());
 			h.doClassification();
 			updateWeights(h);
 			this.getHypothesis().add(h);
 		}
-//		for(int i = 0; i < DTCs; i++){
-//			Hypothesis h = new Hypothesis(this.getDataset(), HypothesisType.DTC, trainingSetSize, DTCMaxDept);
-//			//Do classification here?
-//			this.getHypothesis().add(h);
-//		}
+		for(int i = 0; i < DTCs; i++){
+			Hypothesis h = new Hypothesis(HypothesisType.DTC, DTCMaxDept,this.getTestSet(), this.getTrainingSet());
+			h.doClassification();
+			updateWeights(h);
+			this.getHypothesis().add(h);
+		}
 		
 	}
 	
@@ -65,6 +75,9 @@ public class Adaboost {
 		}
 		
 		h.setWeight(Math.log((double)(1-h.getError())/h.getError()));
+		
+		System.out.println("hyp error: " + h.getError());
+		System.out.println("hyp vekt sum: " +weightSum);
 
 	}
 
@@ -102,8 +115,34 @@ public class Adaboost {
         this.dataset = new DataSet(set);
 	}
 	
+	public void devideDataset(DataSet data, double ratio){
+		this.getTrainingSet().getInstances().clear();
+		this.getTrainingSet().getInstances().addAll(data.getInstances().subList(0, (int) (data.getInstances().size()*ratio)));
+		
+		this.getTestSet().getInstances().clear();
+		this.getTestSet().getInstances().addAll(data.getInstances().subList((int) (data.getInstances().size()*ratio), data.getInstances().size()));
+	}
+	
+	
+	
 
 	
+	public DataSet getTestSet() {
+		return testSet;
+	}
+
+	public void setTestSet(DataSet testSet) {
+		this.testSet = testSet;
+	}
+
+	public DataSet getTrainingSet() {
+		return trainingSet;
+	}
+
+	public void setTrainingSet(DataSet trainingSet) {
+		this.trainingSet = trainingSet;
+	}
+
 	public DataSet getDataset() {
 		return dataset;
 	}
@@ -112,7 +151,7 @@ public class Adaboost {
 	}
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("yeast.txt", 5, 0, 0.3, 0);
+		Adaboost ada = new Adaboost("yeast.txt", 0, 5, 0.3, 3);
 
 	}
 	

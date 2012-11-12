@@ -8,7 +8,7 @@ public class DTCTree {
 	private DTCNode rootNode;
 	
 	
-	public DTCTree(DataSet dataSet) {
+	public DTCTree(DataSet dataSet, int maxDepht) {
 		this.dataSet = dataSet;
 		DTCNode root = new DTCNode(null, -1, -1, 0);
 		
@@ -19,13 +19,13 @@ public class DTCTree {
 		
 		root.setInstances(dataSet.getInstances());
 		
-		this.rootNode = buildTree(root, initialAttributes, 0);
+		this.rootNode = buildTree(root, initialAttributes, 0, maxDepht);
 	}
 	
 	/*
 	 * Create a decision tree based on the data set given
 	 */
-	public DTCNode buildTree(DTCNode root, ArrayList<Integer> remainingAttributes, int level){
+	public DTCNode buildTree(DTCNode root, ArrayList<Integer> remainingAttributes, int level, int maxDepht){
 		
 		int bestAttribute = -1;
 		double bestGain = 0;
@@ -43,7 +43,8 @@ public class DTCTree {
 		//All the attributes are of the same class, return root with that class.
 		else if(root.getEntropy() == 0) {
 			root.setTerminal(true);
-			root.setNodeClass(root.getInstances().get(0).classification);
+			InstanceTriplet firstInstance = root.getInstances().get(0);
+			root.setNodeClass(firstInstance.getInstance().get(firstInstance.getInstance().size()-1).intValue());
 			return root;
 		}
 		
@@ -57,14 +58,26 @@ public class DTCTree {
 			
 		}
 		
+		else if(maxDepht == 0){
+			root.setTerminal(true);
+			root.setNodeClass(pluralityClass(root));
+			return root;
+		}
+		
 		for(int i=0; i<remainingAttributes.size(); i++) {
 			double gain = calculateGain(root, splitNode(root, remainingAttributes.get(i), level));
+			
+			if(level == 0)
+				System.out.println("Attr:" +i +", gain: " + gain);
 			
 			if(gain > bestGain) {
 				bestAttribute = remainingAttributes.get(i);
 				bestGain = gain;
 			}
 		}
+		
+		//if(level==0 || level==1)
+			//System.out.println("lev:"+level + ", best: " + bestGain);
 		
 		if(bestAttribute != -1){
 			ArrayList<Integer> remainingAttributesCopy = new ArrayList<Integer>();
@@ -74,7 +87,7 @@ public class DTCTree {
 			ArrayList<DTCNode> children = splitNode(root, remainingAttributes.get(remainingAttributes.indexOf(bestAttribute)), level+1);
 			for(DTCNode child: children) {
 				child.setParent(root);
-				buildTree(child, remainingAttributesCopy, level+1);
+				buildTree(child, remainingAttributesCopy, level+1, maxDepht-1);
 			}
 			
 			root.setChildren(children);
@@ -100,7 +113,7 @@ public class DTCTree {
 			int count = 0;
 			
 			for(InstanceTriplet instance: node.getInstances()){
-				if(instance.getClassification() == i) {
+				if(instance.getInstance().get(instance.getInstance().size()-1) == i) {
 					count++;
 				}
 			}
@@ -122,15 +135,12 @@ public class DTCTree {
 		double totalEntropy = 0.0;
 		double totalWeight = 0.0;
 		
-		//int totalInstances = node.getInstances().size();
-		
 		for(DTCNode childNode: childNodes){
 			totalWeight += childNode.getWeight();
 		}
 		
 		for(DTCNode childNode: childNodes){
 			childNode.setEntropy(calculateEntropy(childNode));
-			//double childInstances = childNode.getInstances().size();
 			
 			totalEntropy += ((double) childNode.getWeight()/totalWeight) * childNode.getEntropy(); 
 		}
@@ -175,7 +185,7 @@ public class DTCTree {
 		
 		for(int i=0; i<this.dataSet.getClasses().length; i++) {
 			for(InstanceTriplet instance: node.getInstances()){
-				if(instance.getClassification() == this.dataSet.getClasses()[i])
+				if(instance.getInstance().get(instance.getInstance().size()-1) == this.dataSet.getClasses()[i])
 					counter[i]++;
 			}
 		}
@@ -203,7 +213,7 @@ public class DTCTree {
 	 */
 	public int classifyHelper(InstanceTriplet instance, DTCNode node) {
 		
-		if(node.isTerminal()) {
+		if(node.isTerminal() || node.getChildren() == null) {
 			return node.getNodeClass();
 		}
 		else {
@@ -223,12 +233,33 @@ public class DTCTree {
 		}
 	}
 	
+	/*
+	 * 
+	 */
+	public double classifyTestSet(DataSet set){
+		int numOfInstances = set.getInstances().size();
+		int errors = 0;
+		
+		for(InstanceTriplet instance: set.getInstances()){
+			instance.setClassification(this.classify(instance));
+			
+			if(instance.getClassification() != instance.getInstance().get(instance.getInstance().size()-1)){
+				errors +=1;
+			}
+		}
+				
+		return ((double) errors/numOfInstances);
+		
+		
+		
+	}
 	
 	
 	/*
 	 * Main method for testing
 	 */
 	public static void main(String[] args){
+		/*
 		ArrayList<InstanceTriplet> instances = new ArrayList<InstanceTriplet>();
 		
 		DataSet set = new DataSet();
@@ -387,7 +418,7 @@ public class DTCTree {
 
 		set.setInstances(instances);
 		
-		DTCTree tree = new DTCTree(set);
+		DTCTree tree = new DTCTree(set,2);
 				
 		ArrayList<Integer> remaining = new ArrayList<Integer>();
 		remaining.add(0);
@@ -395,7 +426,7 @@ public class DTCTree {
 		remaining.add(2);
 				
 		System.out.println("Instance is of class: " + tree.classify(instance8));
-		
+		*/
 	}
 
 }

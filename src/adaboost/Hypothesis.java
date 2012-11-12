@@ -8,7 +8,6 @@ public class Hypothesis {
 	public enum HypothesisType{NBC, DTC}
 	
 	private HypothesisType type;
-	private DataSet dataSet;
 	private DataSet trainingSet;
 	private DataSet testSet;
 	private double weight;
@@ -16,27 +15,18 @@ public class Hypothesis {
 	private int DTCMaxDepth;
 	private double ratio;
 	
-	public Hypothesis(DataSet data, HypothesisType type, double trainingRatio, int DTCMaxDepht){
+	public Hypothesis(HypothesisType type, int DTCMaxDepht, DataSet testSet, DataSet trainingSet){
 		
-		this.dataSet = data;
 		this.testSet = new DataSet();
 		this.trainingSet = new DataSet();
 		this.type = type;
 		this.error = 0.0;
 		this.DTCMaxDepth = DTCMaxDepht;
-		this.ratio = trainingRatio;
 		
 	}
 	
 	public double doClassification(){
 		//double result;
-		this.devideDataset(this.getDataset(), this.ratio);
-		
-		this.testSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
-		this.trainingSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
-		
-		this.testSet.setClasses(this.getDataset().getClasses());
-		this.trainingSet.setClasses(this.getDataset().getClasses());
 		
 		if(this.type == HypothesisType.NBC){
 			NBCBuilder NBC = new NBCBuilder(trainingSet, testSet);
@@ -45,19 +35,10 @@ public class Hypothesis {
 		}
 		
 		else if(this.type == HypothesisType.DTC){
-			
+			DTCTree DTC = new DTCTree(trainingSet, DTCMaxDepth);
+			System.out.println(DTC.classifyTestSet(trainingSet));
 		}
 		return 0.0;
-	}
-	
-	
-	
-	public void devideDataset(DataSet data, double ratio){
-		this.getTrainingSet().getInstances().clear();
-		this.getTrainingSet().getInstances().addAll(data.getInstances().subList(0, (int) (data.getInstances().size()*ratio)));
-		
-		this.getTestSet().getInstances().clear();
-		this.getTestSet().getInstances().addAll(data.getInstances().subList((int) (data.getInstances().size()*ratio), data.getInstances().size()));
 	}
 	
 	public DataSet getTrainingSet() {
@@ -71,14 +52,6 @@ public class Hypothesis {
 	}
 	public void setTestSet(DataSet testSet) {
 		this.testSet = testSet;
-	}
-	
-	public DataSet getDataset() {
-		return dataSet;
-	}
-
-	public void setDataset(DataSet dataset) {
-		this.dataSet = dataset;
 	}
 
 	public double getWeight() {
