@@ -17,8 +17,8 @@ public class Hypothesis {
 	
 	public Hypothesis(HypothesisType type, int DTCMaxDepht, DataSet testSet, DataSet trainingSet){
 		
-		this.testSet = new DataSet();
-		this.trainingSet = new DataSet();
+		this.testSet = testSet;
+		this.trainingSet = trainingSet;
 		this.type = type;
 		this.error = 0.0;
 		this.DTCMaxDepth = DTCMaxDepht;
