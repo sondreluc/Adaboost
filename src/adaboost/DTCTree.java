@@ -28,7 +28,7 @@ public class DTCTree {
 	public DTCNode buildTree(DTCNode root, ArrayList<Integer> remainingAttributes, int level, int maxDepht){
 		
 		int bestAttribute = -1;
-		double bestGain = 0;
+		double bestGain =-10.0;
 		
 		root.setEntropy(calculateEntropy(root));
 		
@@ -48,14 +48,11 @@ public class DTCTree {
 			return root;
 		}
 		
-		
 		//No more attributes to split on. Do plurality classification.
 		else if(remainingAttributes.size() == 0) {
-			
 			root.setTerminal(true);
 			root.setNodeClass(pluralityClass(root));
 			return root;
-			
 		}
 		
 		else if(maxDepht == 0){
@@ -73,15 +70,13 @@ public class DTCTree {
 			}
 		}
 		
-		//if(level==0 || level==1)
-			//System.out.println("lev:"+level + ", best: " + bestGain);
-		
 		if(bestAttribute != -1){
 			ArrayList<Integer> remainingAttributesCopy = new ArrayList<Integer>();
 			remainingAttributesCopy.addAll(remainingAttributes);
 			remainingAttributesCopy.remove(remainingAttributesCopy.indexOf(bestAttribute));
 			
 			ArrayList<DTCNode> children = splitNode(root, remainingAttributes.get(remainingAttributes.indexOf(bestAttribute)), level+1);
+			
 			for(DTCNode child: children) {
 				child.setParent(root);
 				buildTree(child, remainingAttributesCopy, level+1, maxDepht-1);
@@ -89,6 +84,9 @@ public class DTCTree {
 			
 			root.setChildren(children);
 			root.setAttribute(bestAttribute);
+		}
+		else{
+			
 		}
 		
 		return root;
@@ -202,26 +200,25 @@ public class DTCTree {
 	 * 
 	 */
 	public int classify(InstanceTriplet instance){
-		return classifyHelper(instance, this.rootNode);
+		return classifyHelper(instance, this.rootNode, 0);
 	}
 	
 	/*
 	 * Method for classifying an instance with a decision tree
 	 */
-	public int classifyHelper(InstanceTriplet instance, DTCNode node) {
+	public int classifyHelper(InstanceTriplet instance, DTCNode node, int level) {
 		
-		if(node.isTerminal() || node.getChildren() == null) {
+		if(node.isTerminal()) {
 			return node.getNodeClass();
 		}
 		else {
-			
 			int testAttribute = node.getAttribute();
 			double testResult = instance.getInstance().get(testAttribute);
 			
 			//Go to correct child node, based on the test attribute
 			for(DTCNode child: node.getChildren()){
 				if(child.getAttributeValue() == testResult){
-					return classifyHelper(instance, child);
+					return classifyHelper(instance, child, level+1);
 				}
 			}
 			
