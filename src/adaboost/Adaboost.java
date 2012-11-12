@@ -24,9 +24,13 @@ public class Adaboost {
 		} catch (IOException e) {
 
 		}
+		
+		this.testSet = new DataSet();
+		this.trainingSet = new DataSet();
+		
 		this.devideDataset(this.dataset, trainingSetSize);
-		this.testSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
-		this.trainingSet.setAttrNumberOfValues(this.getDataset().getAttrNumberOfValues());
+		this.testSet.setAttrNumberOfValues(this.dataset.getAttrNumberOfValues());
+		this.trainingSet.setAttrNumberOfValues(this.dataset.getAttrNumberOfValues());
 		
 		this.testSet.setClasses(this.dataset.getClasses());
 		this.trainingSet.setClasses(this.dataset.getClasses());
@@ -34,14 +38,13 @@ public class Adaboost {
 		this.initWeights();
 		
 		for(int i = 0; i < NBCs ; i++){
-			
-			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.getTestSet(), this.getTrainingSet());
+			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.testSet, this.trainingSet);
 			h.doClassification();
 			updateWeights(h);
 			this.getHypothesis().add(h);
 		}
 		for(int i = 0; i < DTCs; i++){
-			Hypothesis h = new Hypothesis(HypothesisType.DTC, DTCMaxDept,this.getTestSet(), this.getTrainingSet());
+			Hypothesis h = new Hypothesis(HypothesisType.DTC, DTCMaxDept,this.testSet, this.trainingSet);
 			h.doClassification();
 			updateWeights(h);
 			this.getHypothesis().add(h);
@@ -50,8 +53,8 @@ public class Adaboost {
 	}
 	
 	public void initWeights(){
-		for(InstanceTriplet it : this.dataset.getInstances()){
-			it.setWeight((double)1.0/this.dataset.getInstances().size());
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
+			it.setWeight((double)1.0/this.trainingSet.getInstances().size());
 		}
 	}
 	
@@ -59,7 +62,7 @@ public class Adaboost {
 	public void updateWeights(Hypothesis h){
 		double weightSum = 0.0;
 
-		for(InstanceTriplet it : this.dataset.getInstances()){
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
 				h.setError(h.getError()+ it.getWeight());
 
@@ -72,7 +75,7 @@ public class Adaboost {
 
 		}
 
-		for(InstanceTriplet it : this.dataset.getInstances()){
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			it.setWeight((double)it.getWeight()/weightSum);
 		}
 		

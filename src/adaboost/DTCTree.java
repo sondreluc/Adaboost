@@ -67,9 +67,6 @@ public class DTCTree {
 		for(int i=0; i<remainingAttributes.size(); i++) {
 			double gain = calculateGain(root, splitNode(root, remainingAttributes.get(i), level));
 			
-			if(level == 0)
-				System.out.println("Attr:" +i +", gain: " + gain);
-			
 			if(gain > bestGain) {
 				bestAttribute = remainingAttributes.get(i);
 				bestGain = gain;
