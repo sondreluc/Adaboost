@@ -36,7 +36,6 @@ public class Hypothesis {
 			NBCBuilder NBC = new NBCBuilder(this.trainingSet);
 			NBC.train();
 			result = NBC.testSet(NBC.getTrainingSet());
-			System.out.println(this.testSet.getInstances().get(0).classification);
 			NBC.testSet(this.testSet);
 		}
 		else if(this.type == HypothesisType.DTC){

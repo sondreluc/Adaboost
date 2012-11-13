@@ -42,7 +42,7 @@ public class Adaboost {
 		
 		for(int i = 0; i < NBCs ; i++){
 			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.testSet, this.trainingSet);
-			System.out.println(h.doClassification());
+			h.doClassification();
 			h.setGood(updateWeights(h));
 			this.getHypothesis().add(h);
 		}
@@ -92,22 +92,26 @@ public class Adaboost {
 
 	public boolean updateWeights(Hypothesis h){
 		double weightSum = 0.0;
-
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
-				h.setError(h.getError()+ it.getWeight());
+				h.setError(h.getError()+it.getWeight());
 			}
 		}
 		if(h.getError()>(double)(this.dataset.getClasses().length-1)/(this.dataset.getClasses().length)){
 			System.out.println("bad");
 			return false;
 		}
+
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if(it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
-				it.setWeight(it.getWeight()*(1-(double)h.getError()/h.getError())*(this.getDataset().getClasses().length-1));
+				if(h.getError() != 0){
+					it.setWeight(it.getWeight()*(1-(double)h.getError()/h.getError())*(this.getDataset().getClasses().length-1));
+					
+				}
 			}
+		}
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			weightSum += it.getWeight();
-
 		}
 
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
@@ -201,7 +205,7 @@ public class Adaboost {
 	
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("yeast.txt", 10, 0, 0.3, 0);
+		Adaboost ada = new Adaboost("page-blocks.txt", 10, 0, 0.3, 0);
 		int correct = 0;
 		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
 			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
