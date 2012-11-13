@@ -40,7 +40,9 @@ public class Hypothesis {
 		}
 		else if(this.type == HypothesisType.DTC){
 			DTCTree DTC = new DTCTree(trainingSet, DTCMaxDepth);
-			System.out.println(DTC.classifyTestSet(trainingSet));
+			DTC.classifyTestSet(trainingSet);
+			DTC.classifyTestSet(testSet);
+			System.out.println("Test set: " + DTC.classifyTestSet(testSet));
 		}
 		for(InstanceTriplet it: this.testSet.getInstances()){
 			classifications.add(it.getClassification());

@@ -28,7 +28,7 @@ public class DTCTree {
 	public DTCNode buildTree(DTCNode root, ArrayList<Integer> remainingAttributes, int level, int maxDepht){
 		
 		int bestAttribute = -1;
-		double bestGain =-10.0;
+		double bestGain =-10;
 		
 		root.setEntropy(calculateEntropy(root));
 		
@@ -61,31 +61,39 @@ public class DTCTree {
 			return root;
 		}
 		
-		for(int i=0; i<remainingAttributes.size(); i++) {
-			double gain = calculateGain(root, splitNode(root, remainingAttributes.get(i), level));
+		else {
 			
-			if(gain > bestGain) {
-				bestAttribute = remainingAttributes.get(i);
-				bestGain = gain;
-			}
-		}
+			bestAttribute = remainingAttributes.get(0);
+			bestGain = calculateGain(root, splitNode(root, remainingAttributes.get(0), level));
 		
-		if(bestAttribute != -1){
-			ArrayList<Integer> remainingAttributesCopy = new ArrayList<Integer>();
-			remainingAttributesCopy.addAll(remainingAttributes);
-			remainingAttributesCopy.remove(remainingAttributesCopy.indexOf(bestAttribute));
-			
-			ArrayList<DTCNode> children = splitNode(root, remainingAttributes.get(remainingAttributes.indexOf(bestAttribute)), level+1);
-			
-			for(DTCNode child: children) {
-				child.setParent(root);
-				buildTree(child, remainingAttributesCopy, level+1, maxDepht-1);
+			for(int i=1; i<remainingAttributes.size(); i++) {
+				
+				double gain = calculateGain(root, splitNode(root, remainingAttributes.get(i), level));
+				
+				if(gain > bestGain) {
+					bestAttribute = remainingAttributes.get(i);
+					bestGain = gain;
+				}
 			}
 			
-			root.setChildren(children);
-			root.setAttribute(bestAttribute);
-		}
-		else{
+			if(bestAttribute != -1){
+				ArrayList<Integer> remainingAttributesCopy = new ArrayList<Integer>();
+				remainingAttributesCopy.addAll(remainingAttributes);
+				remainingAttributesCopy.remove(remainingAttributesCopy.indexOf(bestAttribute));
+				
+				ArrayList<DTCNode> children = splitNode(root, remainingAttributes.get(remainingAttributes.indexOf(bestAttribute)), level+1);
+				
+				for(DTCNode child: children) {
+					child.setParent(root);
+					buildTree(child, remainingAttributesCopy, level+1, maxDepht-1);
+				}
+				
+				root.setChildren(children);
+				root.setAttribute(bestAttribute);
+			}
+			else{
+				
+			}
 			
 		}
 		

@@ -205,7 +205,7 @@ public class Adaboost {
 	
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("page-blocks.txt", 10, 0, 0.3, 0);
+		Adaboost ada = new Adaboost("page-blocks.txt", 0, 60, 0.3, 2);
 		int correct = 0;
 		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
 			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
