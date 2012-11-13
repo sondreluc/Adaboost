@@ -62,7 +62,6 @@ public class NBCBuilder {
 			for(int i = 0; i < set.getClasses().length; i++){
 				double hmap = 1.0;
 				for(int attr = 0; attr < set.getAttrNumberOfValues().length; attr++){
-					
 					hmap = hmap*(double)conditionalAttrProb.get(new AttributeValueClassTriplet(attr, it.instance.get(attr), set.getClasses()[i]));
 				}
 				
