@@ -1,5 +1,7 @@
 package adaboost;
 
+import java.util.ArrayList;
+
 
 
 public class Hypothesis {
@@ -14,6 +16,7 @@ public class Hypothesis {
 	private double error;
 	private int DTCMaxDepth;
 	private boolean good;
+	private ArrayList<Integer> classifications;
 	
 	public Hypothesis(HypothesisType type, int DTCMaxDepht, DataSet testSet, DataSet trainingSet){
 		
@@ -23,23 +26,28 @@ public class Hypothesis {
 		this.error = 0.0;
 		this.DTCMaxDepth = DTCMaxDepht;
 		this.good = true;
+		this.classifications = new ArrayList<Integer>();
 	}
 	
 	public double doClassification(){
-		//double result;
+		double result = 0.0;
 		
 		if(this.type == HypothesisType.NBC){
 			NBCBuilder NBC = new NBCBuilder(this.trainingSet);
 			NBC.train();
-			NBC.testSet(NBC.getTrainingSet());
+			result = NBC.testSet(NBC.getTrainingSet());
+			System.out.println(this.testSet.getInstances().get(0).classification);
 			NBC.testSet(this.testSet);
 		}
-		
 		else if(this.type == HypothesisType.DTC){
 			DTCTree DTC = new DTCTree(trainingSet, DTCMaxDepth);
 			System.out.println(DTC.classifyTestSet(trainingSet));
 		}
-		return 0.0;
+		for(InstanceTriplet it: this.testSet.getInstances()){
+			classifications.add(it.getClassification());
+		}
+		
+		return result;
 	}
 	
 	public DataSet getTrainingSet() {
@@ -93,6 +101,14 @@ public class Hypothesis {
 
 	public void setGood(boolean good) {
 		this.good = good;
+	}
+
+	public ArrayList<Integer> getClassifications() {
+		return classifications;
+	}
+
+	public void setClassifications(ArrayList<Integer> classifications) {
+		this.classifications = classifications;
 	}
 	
 }

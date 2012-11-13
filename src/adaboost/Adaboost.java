@@ -15,11 +15,13 @@ public class Adaboost {
 	public DataSet testSet;
 	public DataSet trainingSet;
 	public ArrayList<Hypothesis> hypothesis;
+	private ArrayList<Integer> classifications;
 	
 	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept){
 		this.hypothesis = new ArrayList<Hypothesis>();
 		this.testSet = new DataSet();
 		this.trainingSet = new DataSet();
+		this.classifications = new ArrayList<Integer>();
 		try {
 			this.readFromFile(datasetFile);
 		} catch (IOException e) {
@@ -40,7 +42,7 @@ public class Adaboost {
 		
 		for(int i = 0; i < NBCs ; i++){
 			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.testSet, this.trainingSet);
-			h.doClassification();
+			System.out.println(h.doClassification());
 			h.setGood(updateWeights(h));
 			this.getHypothesis().add(h);
 		}
@@ -56,13 +58,13 @@ public class Adaboost {
 			HashMap<Integer, Double> votes = new HashMap<Integer, Double>();
 			for(Hypothesis h : this.getHypothesis()){
 				if(h.isGood()){
-					if(!votes.containsKey(h.getTestSet().getInstances().get(i).getClassification())){
-						votes.put(h.getTestSet().getInstances().get(i).getClassification(), h.getWeight());
+					if(!votes.containsKey(h.getClassifications().get(i))){
+						votes.put(h.getClassifications().get(i), h.getWeight());
 					}
 					else{
-						double vote = votes.get(h.getTestSet().getInstances().get(i).getClassification());
+						double vote = votes.get(h.getClassifications().get(i));
 						vote += h.getWeight();
-						votes.put(h.getTestSet().getInstances().get(i).getClassification(), vote);
+						votes.put(h.getClassifications().get(i), vote);
 					}
 				}
 			}
@@ -74,7 +76,7 @@ public class Adaboost {
 					highestVote = votes.get(classInteger);
 				}
 			}
-			this.getTestSet().getInstances().get(i).setClassification(classification);
+			this.getClassifications().add(classification);
 		}
 	
 		
@@ -97,6 +99,7 @@ public class Adaboost {
 			}
 		}
 		if(h.getError()>(double)(this.dataset.getClasses().length-1)/(this.dataset.getClasses().length)){
+			System.out.println("bad");
 			return false;
 		}
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
@@ -187,16 +190,28 @@ public class Adaboost {
 	public void setDataset(DataSet dataset) {
 		this.dataset = dataset;
 	}
+	
+	public ArrayList<Integer> getClassifications() {
+		return classifications;
+	}
+
+	public void setClassifications(ArrayList<Integer> classifications) {
+		this.classifications = classifications;
+	}
+	
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("page-blocks.txt", 5, 0, 0.3, 0);
+		Adaboost ada = new Adaboost("yeast.txt", 10, 0, 0.3, 0);
 		int correct = 0;
-		for (InstanceTriplet it: ada.getTestSet().getInstances()){
-			if(it.getInstance().get(it.getInstance().size()-1).intValue() == it.getClassification()){
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
 				correct++;
 			}
 		}
 		System.out.println((double)correct/ada.getTestSet().getInstances().size());
 	}
+
+
 	
 }
