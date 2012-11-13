@@ -91,6 +91,7 @@ public class Adaboost {
 	
 
 	public boolean updateWeights(Hypothesis h){
+		
 		double weightSum = 0.0;
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
@@ -101,12 +102,13 @@ public class Adaboost {
 			System.out.println("bad");
 			return false;
 		}
+		
+		System.out.println("error: " + h.getError());
 
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if(it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
 				if(h.getError() != 0){
-					it.setWeight(it.getWeight()*(1-(double)h.getError()/h.getError())*(this.getDataset().getClasses().length-1));
-					
+					it.setWeight(it.getWeight() * ((1.0-h.getError())/h.getError()) * (this.getDataset().getClasses().length-1));
 				}
 			}
 		}
@@ -115,10 +117,10 @@ public class Adaboost {
 		}
 
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
-			it.setWeight((double)it.getWeight()/weightSum);
+			it.setWeight(((double)it.getWeight()/weightSum));
 		}
 		
-		h.setWeight(Math.log((double)(1-h.getError())/h.getError()));
+		h.setWeight(Math.log((double)(1.0-h.getError())/h.getError()));
 		return true;
 	}
 
@@ -205,7 +207,7 @@ public class Adaboost {
 	
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("page-blocks.txt", 0, 60, 0.3, 2);
+		Adaboost ada = new Adaboost("page-blocks.txt", 0, 3, 0.3, 2);
 		int correct = 0;
 		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
 			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
