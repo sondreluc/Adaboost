@@ -17,13 +17,13 @@ public class Adaboost {
 	public ArrayList<Hypothesis> hypothesis;
 	private ArrayList<Integer> classifications;
 	
-	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept){
+	public Adaboost(String datasetFile, int NBCs, int DTCs, double trainingSetSize, int DTCMaxDept, boolean prepData, boolean samme){
 		this.hypothesis = new ArrayList<Hypothesis>();
 		this.testSet = new DataSet();
 		this.trainingSet = new DataSet();
 		this.classifications = new ArrayList<Integer>();
 		try {
-			this.readFromFile(datasetFile);
+			this.readFromFile(datasetFile, prepData);
 		} catch (IOException e) {
 
 		}
@@ -40,19 +40,30 @@ public class Adaboost {
 		
 		this.initWeights();
 		
-		for(int i = 0; i < NBCs ; i++){
-			Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.testSet, this.trainingSet);
-			h.doClassification();
-			h.setGood(updateWeights(h));
-			this.getHypothesis().add(h);
-		}
 		for(int i = 0; i < DTCs; i++){
-			Hypothesis h = new Hypothesis(HypothesisType.DTC, DTCMaxDept,this.testSet, this.trainingSet);
-			h.doClassification();
-			h.setGood(updateWeights(h));
-			
-			this.getHypothesis().add(h);
+			while(true){
+				Hypothesis h = new Hypothesis(HypothesisType.DTC, DTCMaxDept,this.testSet, this.trainingSet);
+				h.doClassification();
+				if((samme ? samme(h) : updateWeights(h))){
+					hypothesis.add(h);
+					break;
+				}
+			}
 		}
+		
+		for(int i = 0; i < NBCs ; i++){
+			while(true){
+				Hypothesis h = new Hypothesis(HypothesisType.NBC, DTCMaxDept,this.testSet, this.trainingSet);
+				h.doClassification();
+				
+				if((samme ? samme(h) : updateWeights(h))){
+					hypothesis.add(h);
+					break;
+				}
+			}
+			
+		}
+
 		
 		for(int i =0; i< this.getTestSet().getInstances().size(); i++){
 			HashMap<Integer, Double> votes = new HashMap<Integer, Double>();
@@ -78,8 +89,6 @@ public class Adaboost {
 			}
 			this.getClassifications().add(classification);
 		}
-	
-		
 		
 	}
 	
@@ -91,39 +100,100 @@ public class Adaboost {
 	
 
 	public boolean updateWeights(Hypothesis h){
-		
+		double beta = 1.5; 
 		double weightSum = 0.0;
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
+				//System.out.println(it.getInstance().get(it.getInstance().size()-1).intValue()+"-"+it.getClassification());
 				h.setError(h.getError()+it.getWeight());
+				weightSum += it.getWeight();
 			}
 		}
-		if(h.getError()>(double)(this.dataset.getClasses().length-1)/(this.dataset.getClasses().length)){
-			System.out.println("bad");
+
+		if(h.getError()>=(double)(this.dataset.getClasses().length-1)/(this.dataset.getClasses().length)){
+			this.jiggleWeights(beta);
+			System.out.println("bad: " + h.getError());
+			h.setGood(false);
 			return false;
 		}
 		
-		System.out.println("error: " + h.getError());
-
-		for(InstanceTriplet it : this.trainingSet.getInstances()){
-			if(it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
-				if(h.getError() != 0){
-					it.setWeight(it.getWeight() * ((1.0-h.getError())/h.getError()) * (this.getDataset().getClasses().length-1));
+		
+		if(0 < h.getError() && h.getError() < (double)(this.dataset.getClasses().length-1)/(this.dataset.getClasses().length)){
+			for(InstanceTriplet it : this.trainingSet.getInstances()){
+				if(it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
+						it.setWeight(it.getWeight() * ((1.0-h.getError())/h.getError()) * (this.getDataset().getClasses().length-1));
 				}
+				weightSum += it.getWeight();
 			}
+
+			for(InstanceTriplet it : this.trainingSet.getInstances()){
+				it.setWeight((it.getWeight()/weightSum));
+
+				//System.out.println(it.getInstance().get(it.getInstance().size()-1).intValue()+"-"+it.getClassification()+" - Weight:"+it.getWeight());
+			}
+			
+			h.setWeight(Math.log(((1.0-h.getError())/h.getError())*(this.dataset.getClasses().length-1)));
 		}
+		
+		else if(h.getError() == 0){
+			this.jiggleWeights(beta);
+			h.setWeight((double)10.0+Math.log(this.dataset.getClasses().length-1));
+		}
+		
+		h.setGood(true);
+		return true;
+	}
+
+	
+	private void jiggleWeights(double beta) {
+		double weightSum = 0.0;
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
-			weightSum += it.getWeight();
+				it.setWeight(((double)it.getWeight()+(randomNumber(beta))));
+				weightSum += it.getWeight();
 		}
 
 		for(InstanceTriplet it : this.trainingSet.getInstances()){
 			it.setWeight(((double)it.getWeight()/weightSum));
 		}
+	}
+	
+	private boolean samme(Hypothesis h){
+		double error = 0.0;
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
+			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
+				//System.out.println(it.getInstance().get(it.getInstance().size()-1).intValue()+"-"+it.getClassification());
+				error += it.getWeight();
+			}
+		}
 		
-		h.setWeight(Math.log((double)(1.0-h.getError())/h.getError()));
+		h.setError(error);
+		
+		double logError = (1.0-h.getError())/h.getError();
+		double logClasses = this.dataset.getClasses().length-1;
+
+		h.setWeight(Math.log(logError)+Math.log(logClasses));
+				
+		double weightsum = 0.0;
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
+			if (it.getInstance().get(it.getInstance().size()-1).intValue() != it.getClassification()){
+				//System.out.println(it.getInstance().get(it.getInstance().size()-1).intValue()+"-"+it.getClassification());
+				it.setWeight(it.getWeight()*Math.pow(Math.E, h.getWeight()));
+			}
+			weightsum += it.getWeight();
+		}
+		for(InstanceTriplet it : this.trainingSet.getInstances()){
+			it.setWeight(it.getWeight()/weightsum);
+		}
+
 		return true;
+		
 	}
 
+	private double randomNumber(double beta){
+		double min = -(1/Math.pow(this.trainingSet.getInstances().size(), beta));
+		double max = (1/Math.pow(this.trainingSet.getInstances().size(), beta));
+		return min + (Math.random() * ((max-min) + 1.0));
+	}
 	
 	public ArrayList<Hypothesis> getHypothesis() {
 		return hypothesis;
@@ -133,7 +203,7 @@ public class Adaboost {
 		this.hypothesis = hypothesis;
 	}
 
-	public void readFromFile(String file) throws IOException{
+	public void readFromFile(String file, boolean prepData) throws IOException{
 		
 		File f = new File(file);
 
@@ -163,7 +233,7 @@ public class Adaboost {
         }
 
         reader.close();
-        this.dataset = new DataSet(random);
+        this.dataset = new DataSet(random, prepData);
 	}
 	
 	public void devideDataset(DataSet data, double ratio){
@@ -207,7 +277,7 @@ public class Adaboost {
 	
 	public static void main(String[] args) throws IOException{
 
-		Adaboost ada = new Adaboost("page-blocks.txt", 0, 3, 0.3, 2);
+		Adaboost ada = new Adaboost("pen-digits.txt", 1, 0, 0.2, 5, true, false);
 		int correct = 0;
 		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
 			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
@@ -215,9 +285,97 @@ public class Adaboost {
 				correct++;
 			}
 		}
-		System.out.println((double)correct/ada.getTestSet().getInstances().size());
+		System.out.println("Ada1 - NBC's: 1, DTC's: 0, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());		
+		System.out.println();
+		
+		ada = new Adaboost("pen-digits.txt", 10, 0, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 10, DTC's: 0, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+		
+		ada = new Adaboost("pen-digits.txt", 20, 0, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 20, DTC's: 0, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+		
+		ada = new Adaboost("pen-digits.txt", 0, 1, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 0, DTC's: 1, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+		
+		ada = new Adaboost("pen-digits.txt", 0, 10, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 0, DTC's: 10, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+		
+		ada = new Adaboost("pen-digits.txt", 0, 20, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 0, DTC's: 20, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+
+		
+		ada = new Adaboost("pen-digits.txt", 10, 10, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 10, DTC's: 10, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+		
+		ada = new Adaboost("pen-digits.txt", 20, 20, 0.2, 5, true, false);
+		correct = 0;
+		for (int i = 0; i< ada.getTestSet().getInstances().size(); i++){
+			InstanceTriplet it = ada.getTestSet().getInstances().get(i);
+			if(it.getInstance().get(it.getInstance().size()-1).intValue() == ada.getClassifications().get(i)){
+				correct++;
+			}
+		}
+		System.out.println("Ada1 - NBC's: 20, DTC's: 20, prep:True, samme:false");
+		System.out.println((double)correct/ada.getTestSet().getInstances().size());	
+		System.out.println();
+		
 	}
 
-
+	
 	
 }

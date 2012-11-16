@@ -35,14 +35,14 @@ public class Hypothesis {
 		if(this.type == HypothesisType.NBC){
 			NBCBuilder NBC = new NBCBuilder(this.trainingSet);
 			NBC.train();
-			result = NBC.testSet(NBC.getTrainingSet());
+			result = NBC.testSet(this.trainingSet);
 			NBC.testSet(this.testSet);
 		}
 		else if(this.type == HypothesisType.DTC){
 			DTCTree DTC = new DTCTree(trainingSet, DTCMaxDepth);
 			DTC.classifyTestSet(trainingSet);
 			DTC.classifyTestSet(testSet);
-			System.out.println("Test set: " + DTC.classifyTestSet(testSet));
+			//System.out.println("Test set: " + DTC.classifyTestSet(testSet));
 		}
 		for(InstanceTriplet it: this.testSet.getInstances()){
 			classifications.add(it.getClassification());
