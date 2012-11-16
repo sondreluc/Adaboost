@@ -56,7 +56,7 @@ public class NBCBuilder {
 	}
 	
 	public double testSet(DataSet set){
-		int correct = 0;
+		int error = 0;
 		for(InstanceTriplet it : set.getInstances()){
 			double max = 0.0;
 			for(int i = 0; i < set.getClasses().length; i++){
@@ -71,12 +71,12 @@ public class NBCBuilder {
 					max = hmap;
 				}
 			}
-			if(it.getClassification() == it.instance.get(it.instance.size()-1).intValue()){
-				correct++;
+			if(it.getClassification() != it.instance.get(it.instance.size()-1).intValue()){
+				error++;
 			}
 		}
 		
-		return (double)correct/(double)set.getInstances().size();
+		return (double)error/(double)set.getInstances().size();
 	}
 	
 	public HashMap<Integer, Double> getaPrioriClassProb() {

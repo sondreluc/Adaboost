@@ -19,7 +19,6 @@ public class Hypothesis {
 	private ArrayList<Integer> classifications;
 	
 	public Hypothesis(HypothesisType type, int DTCMaxDepht, DataSet testSet, DataSet trainingSet){
-		
 		this.testSet = testSet;
 		this.trainingSet = trainingSet;
 		this.type = type;
@@ -40,9 +39,9 @@ public class Hypothesis {
 		}
 		else if(this.type == HypothesisType.DTC){
 			DTCTree DTC = new DTCTree(trainingSet, DTCMaxDepth);
-			DTC.classifyTestSet(trainingSet);
+			result = DTC.classifyTestSet(trainingSet);
 			DTC.classifyTestSet(testSet);
-			//System.out.println("Test set: " + DTC.classifyTestSet(testSet));
+			
 		}
 		for(InstanceTriplet it: this.testSet.getInstances()){
 			classifications.add(it.getClassification());
