@@ -116,7 +116,7 @@ public class DTCTree {
 			int count = 0;
 			
 			for(InstanceTriplet instance: node.getInstances()){
-				if(instance.getInstance().get(instance.getInstance().size()-1) == i) {
+				if(instance.getInstance().get(instance.getInstance().size()-1) == this.dataSet.getClasses()[i]) {
 					count++;
 				}
 			}
